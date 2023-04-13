@@ -1,1 +1,15 @@
 /* Styles go here */
+.wallet {
+    padding: 1rem;
+    width: 300px;
+    /* background-color: cadetblue; */
+}
+
+.vote-number {
+    margin: 0px 6px;
+}
+
+.btn-wallet {
+    padding: 0;
+}
+
