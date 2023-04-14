@@ -35,6 +35,10 @@ contract SocialNetwork {
         address voter
     );
 
+    function getVote(address addr, uint index) public view returns (bool) {
+        return addressVotes[addr][index];
+    }
+
     function createPost(string memory _content) public{
         // require valid content
         require(bytes(_content).length > 0);// if true continue excution 

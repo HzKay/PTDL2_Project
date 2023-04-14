@@ -12,7 +12,7 @@ class App extends Component {
   async componentWillMount() {
     await this.loadWeb3()
     await this.loadBlockchainData()
-    // await this.loadToken()
+    await this.loadToken()
   }
 
   async loadWeb3() {
@@ -42,31 +42,41 @@ class App extends Component {
       const postCount = await socialNetwork.methods.postCount().call()
       this.setState({ postCount })
       // Load Posts
-      for (var i = 1; i <= postCount; i++) {
+      for (let i = 1; i <= postCount; i++) {
         const post = await socialNetwork.methods.posts(i).call()
         this.setState({
           posts: [...this.state.posts, post]
         })
       }
-      // Load voter of post
-      const voterCount = this.state.posts.vote;
-      // for (var i = 1; i <= postCount; i++) {
-      //   for (var j = 0; j < voterCount; i++) {
-      //     const voter = await socialNetwork.methods.voterOfPost(i, j).call()
-      //     this.setState({
-      //       voter:[...this.state.voter, voter]
-      //     })
-      //   }
-      // }
-      for (var i = 0; i < voterCount; i++) {
-        const voter = await socialNetwork.methods.voterOfPost(1, i).call()
+
+      for (let i = 1; i <= postCount; i++) {
+        const status = await this.state.socialNetwork.methods.getVote(this.state.account, i).call();
         this.setState({
-          voter:[...this.state.voter, voter]
-        })
+          isVotes: [...this.state.isVotes, status]})
       }
+      
+      console.log("vote", this.state.isVotes);
       // Sort posts. Show highest tipped posts first
       this.setState({
-        posts: this.state.posts.sort((a,b) => b.tipAmount - a.tipAmount )
+        posts: this.state.posts.sort((a,b) => {
+          if (b.tipAmount > a.tipAmount) {
+            return 1;
+          } 
+          
+          else if (b.tipAmount < a.tipAmount) {
+            return -1;
+          } else {
+            if (b.vote > a.vote) {
+              return 1; 
+            }
+            
+            else if (b.vote < a.vote) {
+              return -1; 
+            } else {
+              return 0; 
+            }
+          }
+        })
       })
       this.setState({ loading: false})
     } else {
@@ -74,20 +84,20 @@ class App extends Component {
     }
   }
 
-  // async loadToken() {
-  //   const web3 = window.web3
-  //   const networkId = await web3.eth.net.getId()
-  //   const networkData = TokenSCN.networks[networkId]
-  //   if(networkData) {
-  //     const tokenSCN = new web3.eth.Contract(TokenSCN.abi, networkData.address)
-  //     console.log("token: ", tokenSCN);
-  //     this.setState({tokenSCN})
+  async loadToken() {
+    const web3 = window.web3
+    const networkId = await web3.eth.net.getId()
+    const networkData = TokenSCN.networks[networkId]
+    if(networkData) {
+      const tokenSCN = new web3.eth.Contract(TokenSCN.abi, networkData.address)
+      this.setState({tokenSCN})
 
-  //     const tokenTotal = await tokenSCN.methods.
-  //   } else {
-  //     window.alert('No token found')
-  //   }
-  // }
+      const tokenTotal = await tokenSCN.methods.balanceOf(this.state.account).call()
+      this.setState({tokenTotal: tokenTotal})
+    } else {
+      window.alert('No token found')
+    }
+  }
 
   createPost(content) {
     this.setState({ loading: true })
@@ -113,9 +123,12 @@ class App extends Component {
     })
   }
 
-  isVote(address,id){
-    let result = this.state.socialNetwork.methods.addressVotes(address,id).call()
-    return result;
+  transferToken(address, value){
+    this.setState({ loading: true })
+    this.state.tokenSCN.methods.transfer(address, value).send({ from: this.state.account})
+    .once('receipt', (receipt) => {
+      this.setState({ loading: false })
+    })
   }
 
   constructor(props) {
@@ -126,7 +139,7 @@ class App extends Component {
       tokenSCN: null,
       postCount: 0,
       posts: [],
-      voter: [],
+      isVotes:[],
       tokenTotal: 0,
       loading: true
     }
@@ -134,7 +147,7 @@ class App extends Component {
     this.createPost = this.createPost.bind(this)
     this.tipPost = this.tipPost.bind(this)
     this.votePost = this.votePost.bind(this)
-    this.isVote = this.isVote.bind(this)
+    this.transferToken = this.transferToken.bind(this)
   }
 
   render() {
@@ -149,8 +162,9 @@ class App extends Component {
               tipPost={this.tipPost}
               tokenTotal={this.state.tokenTotal} 
               votePost={this.votePost}
-              isVote={this.isVote}
+              isVote={this.state.isVotes}
               account={this.state.account}
+              transferToken={this.transferToken}
             />
         }
       </div>

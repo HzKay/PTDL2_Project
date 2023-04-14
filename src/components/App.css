@@ -2,7 +2,10 @@
 .wallet {
     padding: 1rem;
     width: 300px;
-    /* background-color: cadetblue; */
+}
+
+#wallet-check:checked .wallet {
+    display: block!important;
 }
 
 .vote-number {
@@ -10,6 +13,9 @@
 }
 
 .btn-wallet {
-    padding: 0;
+    padding: 4px 10px!important;
+    margin-top: 8px;
+    background-color: #007bff;
+    color: white;
 }
 
