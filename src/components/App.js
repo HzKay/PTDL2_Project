@@ -8,7 +8,6 @@ import Navbar from './Navbar'
 import Main from './Main'
 
 class App extends Component {
-
   async componentWillMount() {
     await this.loadWeb3()
     await this.loadBlockchainData()
@@ -48,36 +47,35 @@ class App extends Component {
           posts: [...this.state.posts, post]
         })
       }
-
-      for (let i = 1; i <= postCount; i++) {
-        const status = await this.state.socialNetwork.methods.getVote(this.state.account, i).call();
-        this.setState({
-          isVotes: [...this.state.isVotes, status]})
-      }
-      
-      console.log("vote", this.state.isVotes);
       // Sort posts. Show highest tipped posts first
       this.setState({
         posts: this.state.posts.sort((a,b) => {
-          if (b.tipAmount > a.tipAmount) {
-            return 1;
-          } 
-          
-          else if (b.tipAmount < a.tipAmount) {
-            return -1;
-          } else {
-            if (b.vote > a.vote) {
-              return 1; 
-            }
-            
-            else if (b.vote < a.vote) {
-              return -1; 
+          if (b.vote > a.vote) {
+            return 1; 
+          } else if (b.vote < a.vote) {
+            return -1; 
+          } else { 
+            if (b.tipAmount > a.tipAmount) {
+              return 1;
+            } else if (b.tipAmount < a.tipAmount) {
+              return -1;
             } else {
-              return 0; 
+              return 0;
             }
           }
         })
       })
+
+      const isVoteTemp = this.state.isVotes.concat()
+      for (let i = 1; i <= postCount; i++) {
+        const status = await this.state.socialNetwork.methods.getVote(this.state.account, i).call();
+        isVoteTemp[i-1] = status
+      }
+      
+      this.setState({isVotes: isVoteTemp})
+      // console.log("post: ", this.state.posts);
+      console.log("vote", this.state.isVotes);
+      
       this.setState({ loading: false})
     } else {
       window.alert('SocialNetwork contract not deployed to detected network.')
@@ -104,6 +102,7 @@ class App extends Component {
     this.state.socialNetwork.methods.createPost(content).send({ from: this.state.account })
     .once('receipt', (receipt) => {
       this.setState({ loading: false })
+      this.reloadPage()
     })
   }
 
@@ -112,6 +111,7 @@ class App extends Component {
     this.state.socialNetwork.methods.tipPost(id).send({ from: this.state.account, value: tipAmount })
     .once('receipt', (receipt) => {
       this.setState({ loading: false })
+      this.reloadPage()
     })
   }
 
@@ -120,6 +120,7 @@ class App extends Component {
     this.state.socialNetwork.methods.votePost(id).send({ from: this.state.account})
     .once('receipt', (receipt) => {
       this.setState({ loading: false })
+      this.reloadPage()
     })
   }
 
@@ -129,6 +130,11 @@ class App extends Component {
     .once('receipt', (receipt) => {
       this.setState({ loading: false })
     })
+    this.reloadPage()
+  }
+
+  reloadPage() {
+    window.location.reload()
   }
 
   constructor(props) {
@@ -148,6 +154,7 @@ class App extends Component {
     this.tipPost = this.tipPost.bind(this)
     this.votePost = this.votePost.bind(this)
     this.transferToken = this.transferToken.bind(this)
+    this.reloadPage = this.reloadPage.bind(this);
   }
 
   render() {

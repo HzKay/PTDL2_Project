@@ -52,11 +52,11 @@ class Main extends Component {
                         <button
                           className="btn btn-link btn-sm float-right pt-0"
                           onClick={(event) => {
-                            console.log(key+1)
-                            this.props.votePost(key+1)                
+                            console.log("You vote post has id: ", post.id)
+                            this.props.votePost(post.id)                
                           }}
                         >   
-                          <span className='vote-icon' style={{color: this.props.isVote[key] ?  "red" : "gray"}}>
+                          <span className='vote-icon' style={{color: this.props.isVote[post.id-1] ?  "red" : "gray"}}>
                             <FaHeart/>
                           </span>
                           <span className='vote-number'>{post.vote}</span>
@@ -109,6 +109,7 @@ class Main extends Component {
                               ref={(input) => { this.valueToken = input }}
                               className="form-control"
                               placeholder="10"
+                              min={1}
                               required />
                           <button type="submit" className="btn btn-wallet btn-link btn-sm pt-0">
                               Transfer
